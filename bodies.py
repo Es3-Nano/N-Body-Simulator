@@ -15,5 +15,7 @@ class Body:
         Body.number_of_bodies += 1
         self.all_bodies.append(self)
 
-    def draw_body(self, surface):
-        pygame.draw.circle(surface, self.color, (self.x_pos, self.y_pos) , self.radius)
+    @classmethod
+    def draw_all_bodies(cls, surface):
+        for b in cls.all_bodies:
+            pygame.draw.circle(surface, b.color, (b.x_pos, b.y_pos) , b.radius)
