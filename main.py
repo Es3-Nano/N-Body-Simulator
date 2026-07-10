@@ -3,6 +3,7 @@ from sys import exit
 
 y_pos = 50
 flip_state = False
+speed = 5
 
 pygame.init()
 screen = pygame.display.set_mode((800, 400))
@@ -11,9 +12,9 @@ clock = pygame.time.Clock()
 
 while True:
     if flip_state == False:
-        y_pos += 1
+        y_pos += speed
     elif flip_state == True:
-        y_pos -=1
+        y_pos -= speed
 
     screen.fill((0, 0, 0))
     for event in pygame.event.get():
@@ -29,4 +30,4 @@ while True:
         flip_state = False
     
     pygame.display.update()
-    clock.tick(60)
+    clock.tick(120)
