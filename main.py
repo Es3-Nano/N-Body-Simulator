@@ -1,12 +1,6 @@
 import pygame
 from sys import exit
-
-y_pos = 50
-flip_state = False
-vel = 0
-dt = 0.1
-acc = 4
-radius = 20
+import bodies
 
 screen_width = 800
 screen_height = 400
@@ -16,21 +10,24 @@ screen = pygame.display.set_mode((screen_width, screen_height))
 pygame.display.set_caption("Simulator :)")
 clock = pygame.time.Clock()
 
-while True:
-    screen.fill((0, 0, 0))
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            pygame.quit()
-            exit()
+planet_1 = bodies.Body(1000, 200, 200, (255, 0, 0))
+planet_2 = bodies.Body(5000, 600, 200, (0, 255, 0))
 
-    y_pos += vel * dt + 0.5 * acc * dt ** 2
-    vel += acc * dt
+def run_simulator():
+    while True:
+        screen.fill((0, 0, 0))
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                exit()
 
-    if y_pos >= screen_height - radius:
-        vel = -(vel - 0.1 * vel)
+        planet_1.draw_body(screen)
+        planet_2.draw_body(screen)
 
-    pygame.draw.circle(screen, (255, 0, 0), (400, y_pos), radius)
-    print(vel)
+        pygame.display.update()
+        clock.tick(60)
 
-    pygame.display.update()
-    clock.tick(60)
+run_simulator()
+
+# y_pos += vel * dt + 0.5 * acc * dt ** 2
+# vel += acc * dt
