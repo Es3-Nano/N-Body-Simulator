@@ -30,4 +30,4 @@ while True:
         flip_state = False
     
     pygame.display.update()
-    clock.tick(120)
+    clock.tick(60)
