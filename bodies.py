@@ -4,33 +4,34 @@ class Body:
     number_of_bodies = 0
     all_bodies = []
 
-    def __init__(self, mass, x_pos, y_pos, color=tuple):  
+    def __init__(self, mass, x_pos, y_pos, color: tuple, x_vel = 0, y_vel = 0):  
         self.mass = mass
         self.x_pos = x_pos
         self.y_pos = y_pos
-        self.x_vel = 0
-        self.y_vel = 0
+        self.x_vel = x_vel
+        self.y_vel = y_vel
         self.x_acc = 0
         self.y_acc = 0
-        self.radius = 10
+        self.radius = 5
         self.color = color
         Body.number_of_bodies += 1
         self.all_bodies.append(self)
 
-    def update_acc(self, x_acc, y_acc = 0):
-        self.x_acc += x_acc
+    def update_pos(self, dt, acc_x, acc_y = 0):
+        self.x_vel += 0.5 * self.x_acc * dt
+        self.x_pos += self.x_vel
+        self.x_acc += acc_x
+        self.x_vel += 0.5 * self.x_acc * dt
+
+        self.y_vel += 0.5 * self.y_acc * dt
+        self.y_pos += self.y_vel
+        self.y_acc += acc_y
+        self.y_vel += 0.5 * self.y_acc * dt
 
     def show_acc(self):
-        return self.x_acc
+        print(self.y_acc)
         
-
     @classmethod
     def draw_all_bodies(cls, surface):
         for b in cls.all_bodies:
             pygame.draw.circle(surface, b.color, (b.x_pos, b.y_pos) , b.radius)
-
-planet_1 = Body(1000, 200, 200, (255, 0, 0))
-planet_2 = Body(5000, 600, 200, (0, 255, 0))
-planet_3 = Body(2000, 400, 200, (0, 0, 255))
-
-print(planet_1)
