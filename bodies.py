@@ -15,21 +15,17 @@ class Body:
         self.y_vel = y_vel
         self.x_acc = 0
         self.y_acc = 0
-        self.radius = 1
+        self.radius = 5
         self.color = color
         Body.number_of_bodies += 1
         self.all_bodies.append(self)
 
     def update_pos(self, dt, acc_x, acc_y = 0):
-        self.x_vel += 0.5 * self.x_acc * dt
-        self.x_pos += self.x_vel
-        self.x_acc += acc_x
-        self.x_vel += 0.5 * self.x_acc * dt
+        self.x_vel += acc_x * dt
+        self.x_pos += self.x_vel * dt + 0.5 * acc_x * dt * dt
 
-        self.y_vel += 0.5 * self.y_acc * dt
-        self.y_pos += self.y_vel
-        self.y_acc += acc_y
-        self.y_vel += 0.5 * self.y_acc * dt
+        self.y_vel += acc_y * dt
+        self.y_pos += self.y_vel * dt + 0.5 * acc_y * dt * dt
         
     @classmethod
     def draw_all_bodies(cls, surface):

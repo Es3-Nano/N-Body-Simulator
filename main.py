@@ -11,9 +11,11 @@ screen = pygame.display.set_mode((screen_width, screen_height))
 pygame.display.set_caption("Simulator :)")
 clock = pygame.time.Clock()
 
-planet_1 = bodies.Body(100, 500, 300, (255, 255, 255), -0.1)
-planet_3 = bodies.Body(1000, 0, 0, (255, 255, 0))
-planet_2 = bodies.Body(100, -500, -300, (255, 0, 255), 0.1)
+planet_1 = bodies.Body(100, 0, -300, (255, 0, 255), -0.5)
+planet_2 = bodies.Body(100, 0, 300, (255, 255, 0), 0.5)
+planet_3 = bodies.Body(100, 300, 0, (0, 255, 255), 0, 0.5)
+planet_4 = bodies.Body(100, -300, 0, (255, 255, 255), 0, -0.5)
+planet_5 = bodies.Body(1000, 0, 0, (0, 102, 204))
 
 def run_simulator():
     while True:
