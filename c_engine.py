@@ -1,7 +1,7 @@
 import bodies
 import math
 
-G = 0.00000001
+G = 1
 eps = 100
 
 def calculate_force():

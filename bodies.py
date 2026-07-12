@@ -1,18 +1,21 @@
 import pygame
 
+screen_width = 1280
+screen_height = 720
+
 class Body:
     number_of_bodies = 0
     all_bodies = []
 
     def __init__(self, mass, x_pos, y_pos, color: tuple, x_vel = 0, y_vel = 0):  
         self.mass = mass
-        self.x_pos = x_pos
-        self.y_pos = y_pos
+        self.x_pos = x_pos + screen_width / 2
+        self.y_pos = y_pos + screen_height / 2
         self.x_vel = x_vel
         self.y_vel = y_vel
         self.x_acc = 0
         self.y_acc = 0
-        self.radius = 5
+        self.radius = 1
         self.color = color
         Body.number_of_bodies += 1
         self.all_bodies.append(self)
@@ -27,9 +30,6 @@ class Body:
         self.y_pos += self.y_vel
         self.y_acc += acc_y
         self.y_vel += 0.5 * self.y_acc * dt
-
-    def show_acc(self):
-        print(self.y_acc)
         
     @classmethod
     def draw_all_bodies(cls, surface):
