@@ -25,4 +25,4 @@ def calculate_force():
             acc_y = acc_mag * (y_dis / r)
 
     
-        p1.update_pos(1, acc_x, acc_y)
+        p1.update_pos(0.01, acc_x, acc_y)
