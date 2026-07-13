@@ -4,7 +4,7 @@ import math
 G = 1
 eps = 10000
 
-def calculate_force():
+def calculate_force(time_step):
     for p1 in bodies.Body.all_bodies:
         x_dis = 0
         y_dis = 0
@@ -25,4 +25,4 @@ def calculate_force():
             acc_y = acc_mag * (y_dis / r)
 
     
-        p1.update_pos(0.01, acc_x, acc_y)
+        p1.update_pos(time_step, acc_x, acc_y)

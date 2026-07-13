@@ -30,8 +30,10 @@ def run_simulator():
                 pygame.quit()
                 exit()
 
+        for l in range(10):
+            c_engine.calculate_force(0.01)
+
         bodies.Body.draw_all_bodies(screen)
-        c_engine.calculate_force()
 
         pygame.display.update()
         clock.tick(240)
