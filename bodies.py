@@ -21,11 +21,11 @@ class Body:
         self.all_bodies.append(self)
 
     def update_pos(self, dt, acc_x, acc_y):
-        self.x_vel += acc_x * dt
         self.x_pos += self.x_vel * dt + 0.5 * acc_x * dt * dt
-
-        self.y_vel += acc_y * dt
         self.y_pos += self.y_vel * dt + 0.5 * acc_y * dt * dt
+
+        self.x_vel += acc_x * dt
+        self.y_vel += acc_y * dt
         
     @classmethod
     def draw_all_bodies(cls, surface):
