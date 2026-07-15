@@ -7,15 +7,13 @@ class Body:
     number_of_bodies = 0
     all_bodies = []
 
-    def __init__(self, mass, x_pos, y_pos, color: tuple, x_vel = 0, y_vel = 0):  
+    def __init__(self,  mass, x_pos, y_pos, color: tuple, x_vel = 0, y_vel = 0):  
         self.mass = mass
         self.x_pos = x_pos + screen_width / 2
         self.y_pos = screen_height / 2 - y_pos
         self.x_vel = x_vel
         self.y_vel = y_vel
-        self.x_acc = 0
-        self.y_acc = 0
-        self.radius = 5
+        self.radius = 7.5
         self.color = color
         Body.number_of_bodies += 1
         self.all_bodies.append(self)
