@@ -13,7 +13,7 @@ class Body:
         self.y_pos = screen_height / 2 - y_pos
         self.x_vel = x_vel
         self.y_vel = y_vel
-        self.radius = 7.5
+        self.radius = 5
         self.color = color
         Body.number_of_bodies += 1
         self.all_bodies.append(self)

@@ -2,7 +2,7 @@ import bodies
 import math
 
 # G = 1
-eps = 100
+eps = 1
 
 def calculate_force(time_step):
     for p1 in bodies.Body.all_bodies:
@@ -19,8 +19,8 @@ def calculate_force(time_step):
         
             x_dis = p2.x_pos - p1.x_pos
             y_dis = p2.y_pos - p1.y_pos
-            r = math.sqrt((x_dis ** 2) + (y_dis ** 2))
-            acc_mag = (p2.mass) / ((r ** 2) + eps)
+            r = math.sqrt((x_dis ** 2) + (y_dis ** 2)) + eps
+            acc_mag = (p2.mass) / ((r ** 2))
             acc_x += acc_mag * (x_dis / r)
             acc_y += acc_mag * (y_dis / r)
 
