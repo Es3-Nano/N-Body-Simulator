@@ -1,28 +1,25 @@
 import bodies
 import math
-
-# G = 1
+import numpy as np
+import time
 eps = 1
 
-def calculate_force(time_step):
-    for p1 in bodies.Body.all_bodies:
-        x_dis = 0
-        y_dis = 0
-        acc_mag = 0
-        acc_x = 0
-        acc_y = 0
+def calculate_force(dt):
+    for i, (p1_x, p1_y) in enumerate(zip(bodies.x_pos, bodies.y_pos)):
+        x_dis = y_dis = a_mag = a_x = a_y = 0
 
-        for p2 in bodies.Body.all_bodies:
-            
-            if p1 == p2:
+        for j, (p2_m, p2_x, p2_y) in enumerate(zip(bodies.mass, bodies.x_pos, bodies.y_pos)):
+            if i == j:
                 continue
         
-            x_dis = p2.x_pos - p1.x_pos
-            y_dis = p2.y_pos - p1.y_pos
+            x_dis = p2_x - p1_x
+            y_dis = p2_y - p1_y
             r = math.sqrt((x_dis ** 2) + (y_dis ** 2)) + eps
-            acc_mag = (p2.mass) / ((r ** 2))
-            acc_x += acc_mag * (x_dis / r)
-            acc_y += acc_mag * (y_dis / r)
+            a_mag = (p2_m) / ((r ** 2))
+            a_x += a_mag * (x_dis / r)
+            a_y += a_mag * (y_dis / r)
 
+        bodies.acc_x[i] = a_x
+        bodies.acc_y[i] = a_y
     
-        p1.update_pos(time_step, acc_x, acc_y)
+    bodies.update_pos(dt)

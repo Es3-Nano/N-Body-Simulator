@@ -34,6 +34,9 @@ x_pos = np.array([])
 y_pos = np.array([])
 x_vel = np.array([])
 y_vel = np.array([])
+color = np.array([])
+acc_x = np.array([])
+acc_y = np.array([])
 
 def create_body(m, x_p, y_p, x_v, y_v):
     mass = np.append(mass, m)
@@ -41,3 +44,13 @@ def create_body(m, x_p, y_p, x_v, y_v):
     y_pos = np.append(y_pos, y_p)
     x_vel = np.append(x_vel, x_v)
     y_vel = np.append(y_vel, y_v)
+
+#for _ in zip(mass, x_pos, y_pos):
+#    pygame.draw.circle(surface, (255, 255, 255), (x_pos, y_pos) , 5)
+
+def update_pos(dt):
+    x_pos += x_vel * dt + 0.5 * acc_x * dt * dt
+    y_pos += y_vel * dt + 0.5 * acc_y * dt * dt
+
+    x_vel += acc_x * dt
+    y_vel += acc_y * dt

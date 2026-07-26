@@ -57,7 +57,9 @@ def normal_distribute(count: int):
     y_coordinates = stats.truncnorm.rvs(y_a, y_b, mu_y, sp, count).tolist()
 
     for x, y in zip(x_coordinates, y_coordinates):
-        bodies.Body(100, x, y, (255, 255, 255), 0, 0)
+        bodies.create_body(100, x, y)
+
+    bodies.intialize_acc()
 
 def run_simulator():
     # Initializing Pygame Window
@@ -70,24 +72,45 @@ def run_simulator():
     print("Running")
 
     while running:
+        work_start = time.perf_counter()
+
         screen.fill((0, 0, 0))
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
 
-        start_time = time.perf_counter()
-        for _ in range(1):
-            c_engine.calculate_force(0.1)
-        end_time = time.perf_counter()
+        # C_Engine Part
+        start = time.perf_counter()
+        for _ in range(10):
+            c_engine.calculate_force(0.01)
+        physics_time = time.perf_counter() - start
 
-        bodies.Body.draw_all_bodies(screen)
+        # Drawing
+        start = time.perf_counter()
+        bodies.draw_all_bodies(screen)
+        draw_time = time.perf_counter() - start
 
-        elapsed_time = end_time - start_time
-        print(f"Execution took {elapsed_time:.6f} seconds")
-
+        # Display update
+        start = time.perf_counter()
         pygame.display.update()
-        clock.tick(60)
+        display_time = time.perf_counter() - start
+
+        # Time spent doing actual work
+        work_time = time.perf_counter() - work_start
+
+        # FPS limiter
+        tick_start = time.perf_counter()
+        clock.tick(30)
+        tick_time = time.perf_counter() - tick_start
+
+        print(
+            f"Physics: {physics_time:.6f}s | "
+            f"Draw: {draw_time:.6f}s | "
+            f"Display: {display_time:.6f}s | "
+            f"Work: {work_time:.6f}s | "
+            f"Tick: {tick_time:.6f}s"
+        )
 
     pygame.quit()
 
