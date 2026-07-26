@@ -1,8 +1,8 @@
 import pygame
-from sys import exit
 import bodies
 import c_engine
-import random as rd
+import scipy.stats as stats
+import time
 
 def check_if_int(prompt: str, deflaut: int):
     x = 5
@@ -44,14 +44,20 @@ def normal_distribute(count: int):
     y_coordinates = []
 
     x_radius = check_if_int("Enter the radius of the normal distribution in pixels for X: ", 0.5 * bodies.screen_width)
-    y_radius = check_if_int("Enter the radius of the normal distribution in pixels for Y: ", 0.5 * bodies.screen_height)
+    y_radius = check_if_int("Enter the radius of the normal distribution in pixels for Y: ", 0.5 * bodies.screen_height) # If user types none the deflaut value is the second parameter
 
-    for _ in range(int(count)):
-        x_coordinates.append(rd.gauss(0, x_radius))
-        y_coordinates.append((rd.gauss(0 , y_radius)))
+    mu_x = 0
+    mu_y = 0
+    sp = 200
 
-    for _ in range(count):
-        bodies.Body(100, rd.sample(x_coordinates, 1)[0], rd.sample(y_coordinates, 1)[0], (255, 255, 255), 0, 0)
+    x_a, x_b = -x_radius / sp, x_radius / sp
+    y_a, y_b = -y_radius / sp, y_radius / sp
+
+    x_coordinates = stats.truncnorm.rvs(x_a, x_b, mu_x, sp, count).tolist()
+    y_coordinates = stats.truncnorm.rvs(y_a, y_b, mu_y, sp, count).tolist()
+
+    for x, y in zip(x_coordinates, y_coordinates):
+        bodies.Body(100, x, y, (255, 255, 255), 0, 0)
 
 def run_simulator():
     # Initializing Pygame Window
@@ -70,10 +76,15 @@ def run_simulator():
             if event.type == pygame.QUIT:
                 running = False
 
+        start_time = time.perf_counter()
         for _ in range(1):
             c_engine.calculate_force(0.1)
+        end_time = time.perf_counter()
 
         bodies.Body.draw_all_bodies(screen)
+
+        elapsed_time = end_time - start_time
+        print(f"Execution took {elapsed_time:.6f} seconds")
 
         pygame.display.update()
         clock.tick(60)
