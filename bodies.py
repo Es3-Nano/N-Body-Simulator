@@ -1,8 +1,10 @@
 import pygame
 import numpy as np
+import math
 
 screen_width = 1280
 screen_height = 720
+b_radii = 5
 
 mass = np.array([])
 x_pos = np.array([])
@@ -36,7 +38,7 @@ def intialize_acc():
 
 def draw_all_bodies(surface):
     for a, b in zip(x_pos, y_pos):
-        pygame.draw.circle(surface, (255, 255, 255), (a, b) , 5)
+        pygame.draw.circle(surface, (255, 255, 255), (a, b) , b_radii)
 
 def update_pos(dt):
     global x_pos
@@ -47,3 +49,48 @@ def update_pos(dt):
     y_pos += (y_vel * dt) + (0.5 * acc_y * dt * dt)
     x_vel += acc_x * dt
     y_vel += acc_y * dt
+
+# b1 and b2 are the index of bodies in a list that match to a body
+def b_collision(b1, b2, r, eps):
+    global mass
+    global x_pos
+    global y_pos
+    global x_vel
+    global y_vel
+    global acc_x
+    global acc_y
+    global number_of_bodies
+
+    if r >= 2 * b_radii:
+        combined_mass = (mass[b1] + mass[b2])
+        x_vel[b1] = ((mass[b2] * x_vel[b2]) + (mass[b1] * x_vel[b1])) / combined_mass
+        y_vel[b1] = ((mass[b2] * y_vel[b2]) + (mass[b1] * y_vel[b1])) / combined_mass
+        x_pos[b1] = ((mass[b2] * x_pos[b2]) + (mass[b1] * x_pos[b1])) / combined_mass
+        y_pos[b1] = ((mass[b2] * y_pos[b2]) + (mass[b1] * y_pos[b1])) / combined_mass
+        mass[b1] = combined_mass
+
+        for b3, (p3_m, p3_x, p3_y) in enumerate(zip(mass, x_pos, y_pos)):
+            if b3 == b2 or b3 == b1:
+                continue
+        
+            x_dis = p3_x - x_pos[b1]
+            y_dis = p3_y - x_pos[b1]
+            r = math.sqrt((x_dis ** 2) + (y_dis ** 2)) + eps
+            a_mag = (p3_m) / ((r ** 2))
+            a_x += a_mag * (x_dis / r)
+            a_y += a_mag * (y_dis / r)
+
+        acc_x[b1] = a_x
+        acc_y[b1] = a_y
+
+        mass = np.delete(mass, b2)
+        x_pos = np.delete(x_pos, b2)
+        y_pos = np.delete(y_pos, b2)
+        x_vel = np.delete(x_vel, b2)
+        y_vel = np.delete(y_vel, b2)
+        acc_x = np.delete(acc_x, b2)
+        acc_y = np.delete(acc_y, b2)
+        number_of_bodies -= 1
+        return True
+
+    return False

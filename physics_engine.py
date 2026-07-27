@@ -14,7 +14,9 @@ def calculate_force(dt):
         
             x_dis = p2_x - p1_x
             y_dis = p2_y - p1_y
-            r = math.sqrt((x_dis ** 2) + (y_dis ** 2)) + eps
+            r = math.sqrt((x_dis ** 2) + (y_dis ** 2))
+
+             
             a_mag = (p2_m) / ((r ** 2))
             a_x += a_mag * (x_dis / r)
             a_y += a_mag * (y_dis / r)

@@ -1,6 +1,6 @@
 import pygame
 import bodies
-import c_engine
+import physics_engine
 import scipy.stats as stats
 import time
 
@@ -83,7 +83,7 @@ def run_simulator():
         # C_Engine Part
         start = time.perf_counter()
         for _ in range(10):
-            c_engine.calculate_force(0.01)
+            physics_engine.calculate_force(0.01)
         physics_time = time.perf_counter() - start
 
         # Drawing
@@ -109,7 +109,8 @@ def run_simulator():
             f"Draw: {draw_time:.6f}s | "
             f"Display: {display_time:.6f}s | "
             f"Work: {work_time:.6f}s | "
-            f"Tick: {tick_time:.6f}s"
+            f"Tick: {tick_time:.6f}s  | "
+            f"Number of Bodies: {bodies.number_of_bodies}"
         )
 
     pygame.quit()
