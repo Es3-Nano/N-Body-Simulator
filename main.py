@@ -4,6 +4,8 @@ import physics_engine
 import scipy.stats as stats
 import time
 
+dt = 0.1
+
 def check_if_int(prompt: str, deflaut: int):
     x = 5
 
@@ -83,7 +85,8 @@ def run_simulator():
         # C_Engine Part
         start = time.perf_counter()
         for _ in range(10):
-            physics_engine.calculate_force(0.01)
+            physics_engine.calculate_force()
+            bodies.update_pos(dt)
         physics_time = time.perf_counter() - start
 
         # Drawing
@@ -101,17 +104,17 @@ def run_simulator():
 
         # FPS limiter
         tick_start = time.perf_counter()
-        clock.tick(30)
+        clock.tick(60)
         tick_time = time.perf_counter() - tick_start
 
-        print(
-            f"Physics: {physics_time:.6f}s | "
-            f"Draw: {draw_time:.6f}s | "
-            f"Display: {display_time:.6f}s | "
-            f"Work: {work_time:.6f}s | "
-            f"Tick: {tick_time:.6f}s  | "
-            f"Number of Bodies: {bodies.number_of_bodies}"
-        )
+        # print(
+        #     f"Physics: {physics_time:.6f}s | "
+        #     f"Draw: {draw_time:.6f}s | "
+        #     f"Display: {display_time:.6f}s | "
+        #     f"Work: {work_time:.6f}s | "
+        #     f"Tick: {tick_time:.6f}s  | "
+        #     f"Number of Bodies: {bodies.number_of_bodies}"
+        # )
 
     pygame.quit()
 
