@@ -15,6 +15,7 @@ y_vel = np.array([], dtype='d')
 color = np.array([])
 acc_x = np.array([], dtype='d')
 acc_y = np.array([], dtype='d')
+collision_list = np.array([], dtype="u2")
 
 def create_body(m, x_p, y_p, x_v = 0, y_v = 0):
     global mass
@@ -50,9 +51,7 @@ def update_pos(dt):
     x_vel += acc_x * dt
     y_vel += acc_y * dt
 
-# b1 and b2 are the index of bodies in a list that match to a body
-"""
-def b_collision(b1, b2, eps):
+def collision(b1, b2, eps):
     global mass
     global x_pos
     global y_pos
@@ -62,10 +61,10 @@ def b_collision(b1, b2, eps):
     global acc_y
     global number_of_bodies
 
-    a_x = 0.0
-    a_y = 0.0
+    print(f"P1: {b1}")
+    print(f"P2: {b2}")
 
-    combined_mass = (mass[b1] + mass[b2])
+    combined_mass = mass[b1] + mass[b2]
     x_vel[b1] = ((mass[b2] * x_vel[b2]) + (mass[b1] * x_vel[b1])) / combined_mass
     y_vel[b1] = ((mass[b2] * y_vel[b2]) + (mass[b1] * y_vel[b1])) / combined_mass
     x_pos[b1] = ((mass[b2] * x_pos[b2]) + (mass[b1] * x_pos[b1])) / combined_mass
@@ -80,11 +79,8 @@ def b_collision(b1, b2, eps):
         y_dis = p3_y - y_pos[b1]
         r = math.sqrt((x_dis ** 2) + (y_dis ** 2)) + eps
         a_mag = (p3_m) / ((r ** 2))
-        a_x += a_mag * (x_dis / r)
-        a_y += a_mag * (y_dis / r)
-
-    acc_x[b1] = a_x
-    acc_y[b1] = a_y
+        acc_x[b1] += a_mag * (x_dis / r)
+        acc_y[b1] += a_mag * (y_dis / r)
 
     mass = np.delete(mass, b2)
     x_pos = np.delete(x_pos, b2)
@@ -94,4 +90,3 @@ def b_collision(b1, b2, eps):
     acc_x = np.delete(acc_x, b2)
     acc_y = np.delete(acc_y, b2)
     number_of_bodies -= 1
-"""
