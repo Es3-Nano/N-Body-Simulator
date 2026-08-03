@@ -3,6 +3,7 @@ import bodies
 import physics_engine
 import scipy.stats as stats
 import random as rd
+import numpy as np
 import time
 
 dt = 0.001
@@ -98,6 +99,7 @@ def run_simulator():
     clock = pygame.time.Clock()
 
     running = True
+    collision_check = False
     print("Running")
 
     while running:
@@ -111,8 +113,8 @@ def run_simulator():
 
         # C_Engine Part
         start = time.perf_counter()
-        for _ in range(10):
-            bodies.collision_list = physics_engine.calculate_force(
+        for _ in range(50):
+            collision_check = physics_engine.calculate_force(
                 bodies.mass, 
                 bodies.x_pos, 
                 bodies.y_pos, 
@@ -120,15 +122,11 @@ def run_simulator():
                 bodies.acc_y, 
                 bodies.b_radii, 
                 bodies.collision_list)
-            if len(bodies.collision_list) % 2 == 0 and len(bodies.collision_list) > 0:
-                print(f"C: {len(bodies.collision_list)}")
-                for _ in range(len(bodies.collision_list/2)):
-                    pair_1 = 0
-                    pair_2 = 1
-                    bodies.collision(pair_1, pair_2, physics_engine.eps)
-                    pair_1 += 2
-                    pair_2 += 2
+            if collision_check:
+                bodies.collision(bodies.collision_list[0], bodies.collision_list[1], physics_engine.eps)
+            bodies.collision_list = np.zeros(2, dtype=np.int64)
             bodies.update_pos(dt)
+            collision_check = False
         physics_time = time.perf_counter() - start
 
         # Drawing the bodies

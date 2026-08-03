@@ -15,7 +15,7 @@ y_vel = np.array([], dtype='d')
 color = np.array([])
 acc_x = np.array([], dtype='d')
 acc_y = np.array([], dtype='d')
-collision_list = np.array([], dtype="u2")
+collision_list = np.zeros(2, dtype=np.int64)
 
 def create_body(m, x_p, y_p, x_v = 0, y_v = 0):
     global mass
@@ -60,9 +60,6 @@ def collision(b1, b2, eps):
     global acc_x
     global acc_y
     global number_of_bodies
-
-    print(f"P1: {b1}")
-    print(f"P2: {b2}")
 
     combined_mass = mass[b1] + mass[b2]
     x_vel[b1] = ((mass[b2] * x_vel[b2]) + (mass[b1] * x_vel[b1])) / combined_mass
