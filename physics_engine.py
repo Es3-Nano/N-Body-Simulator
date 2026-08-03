@@ -5,8 +5,8 @@ import numpy as np
 eps = 0
 
 @njit
-def calculate_force(mass, x_pos, y_pos, acc_x, acc_y, radii, c_list):
-    has_collision = False
+def calculate_force(mass, x_pos, y_pos, acc_x, acc_y, radii, c_list, c_status):
+    c_status = False
     for i, (p1_x, p1_y) in enumerate(zip(x_pos, y_pos)):
         x_dis = y_dis = a_mag = a_y = a_x = 0
 
@@ -19,10 +19,10 @@ def calculate_force(mass, x_pos, y_pos, acc_x, acc_y, radii, c_list):
             r = math.sqrt((x_dis ** 2) + (y_dis ** 2)) + eps    
 
             if r <= radii:
-                if not has_collision:
+                if not c_status:
                     c_list[0] = i
                     c_list[1] = j
-                    has_collision = True
+                    c_status = True
                              
             a_mag = (p2_m) / ((r ** 2))
             a_x += a_mag * (x_dis / r)
@@ -32,4 +32,4 @@ def calculate_force(mass, x_pos, y_pos, acc_x, acc_y, radii, c_list):
         acc_x[i] = a_x
 
 
-    return has_collision
+    return c_status

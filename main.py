@@ -39,24 +39,10 @@ def check_if_valid(prompt, deflaut, response_list: list):
     print(f"Deflauting to {deflaut}")
     return deflaut
 
-def settings():
-
+def normal_distribution():
     print("Welcome to my N-body Simulator :]")
     body_count = check_if_int("Enter number of bodies you want to simulate: ", 25)
     
-    print("""
-    1 - Normal Distribution
-    """)
-    menu_select = check_if_int("Select a distribution: ", 1)
-
-    if menu_select == 1:
-        normal_distribute(body_count)
-    else:
-        normal_distribute(body_count)
-
-    return None
-
-def normal_distribute(count: int):
     x_coordinates = []
     y_coordinates = []
 
@@ -71,8 +57,8 @@ def normal_distribute(count: int):
     x_a, x_b = -x_radius / sp, x_radius / sp
     y_a, y_b = -y_radius / sp, y_radius / sp
 
-    x_coordinates = stats.truncnorm.rvs(x_a, x_b, mu_x, sp, count).tolist()
-    y_coordinates = stats.truncnorm.rvs(y_a, y_b, mu_y, sp, count).tolist()
+    x_coordinates = stats.truncnorm.rvs(x_a, x_b, mu_x, sp, body_count).tolist()
+    y_coordinates = stats.truncnorm.rvs(y_a, y_b, mu_y, sp, body_count).tolist()
 
     mass_request = check_if_valid("Do you want randon masses (r) or same mass (s) for all bodies: ", "s", ["s", "r"])
     
@@ -85,7 +71,7 @@ def normal_distribute(count: int):
         lowest_mass = check_if_int("Enter the lowest mass you want for any body: ", 100)
         highest_mass = check_if_int("Enter the highest mass you want for any body: ", 1000)
 
-        mass_range = [ rd.randint(lowest_mass, highest_mass) for _ in range(count) ]
+        mass_range = [ rd.randint(lowest_mass, highest_mass) for _ in range(body_count) ]
         for m, x, y in zip(mass_range, x_coordinates, y_coordinates):
             bodies.create_body(m, x, y)
 
@@ -121,12 +107,11 @@ def run_simulator():
                 bodies.acc_x, 
                 bodies.acc_y, 
                 bodies.b_radii, 
-                bodies.collision_list)
+                bodies.collision_list, 
+                collision_check)
             if collision_check:
                 bodies.collision(bodies.collision_list[0], bodies.collision_list[1], physics_engine.eps)
-            bodies.collision_list = np.zeros(2, dtype=np.int64)
             bodies.update_pos(dt)
-            collision_check = False
         physics_time = time.perf_counter() - start
 
         # Drawing the bodies
@@ -158,5 +143,5 @@ def run_simulator():
 
     pygame.quit()
 
-settings()
+normal_distribution()
 run_simulator()
