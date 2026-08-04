@@ -51,7 +51,7 @@ def normal_distribution():
 
     mu_x = 0
     mu_y = 0
-    sp = 200
+    sp = 300
     mass_select = 0
 
     x_a, x_b = -x_radius / sp, x_radius / sp
