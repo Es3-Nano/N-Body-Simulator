@@ -1,6 +1,5 @@
 import math
 from numba import njit
-import numpy as np
 
 eps = 0
 
@@ -30,6 +29,5 @@ def calculate_force(mass, x_pos, y_pos, acc_x, acc_y, radii, c_list, c_status):
 
         acc_y[i] = a_y
         acc_x[i] = a_x
-
 
     return c_status

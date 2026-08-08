@@ -5,7 +5,7 @@ import math
 screen_width = 1280
 screen_height = 720
 number_of_bodies = 0
-b_radii = 5
+b_radii = 3
 
 mass = np.array([])
 x_pos = np.array([], dtype='d')

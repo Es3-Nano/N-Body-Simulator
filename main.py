@@ -99,7 +99,7 @@ def run_simulator():
 
         # C_Engine Part
         start = time.perf_counter()
-        for _ in range(50):
+        for _ in range(10):
             collision_check = physics_engine.calculate_force(
                 bodies.mass, 
                 bodies.x_pos, 
