@@ -6,8 +6,9 @@ import random as rd
 import numpy as np
 import time
 
-dt = 0.001
+dt = 0.01
 response_trys = 5
+allowCollision = False
 
 def check_if_int(prompt: str, deflaut: int):
     for x in range(response_trys):
@@ -89,7 +90,7 @@ def run_simulator():
     print("Running")
 
     while running:
-        work_start = time.perf_counter()
+        frame_start = time.perf_counter()
 
         screen.fill((0, 0, 0))
 
@@ -99,7 +100,7 @@ def run_simulator():
 
         # C_Engine Part
         start = time.perf_counter()
-        for _ in range(10):
+        for _ in range(1):
             collision_check = physics_engine.calculate_force(
                 bodies.mass, 
                 bodies.x_pos, 
@@ -109,36 +110,26 @@ def run_simulator():
                 bodies.b_radii, 
                 bodies.collision_list, 
                 collision_check)
-            if collision_check:
+            if collision_check and allowCollision:
                 bodies.collision(bodies.collision_list[0], bodies.collision_list[1], physics_engine.eps)
             bodies.update_pos(dt)
         physics_time = time.perf_counter() - start
 
-        # Drawing the bodies
-        start = time.perf_counter()
         bodies.draw_all_bodies(screen)
-        draw_time = time.perf_counter() - start
-
-        # Upadating the display
-        start = time.perf_counter()
         pygame.display.update()
-        display_time = time.perf_counter() - start
 
-        # Time spent doing actual math
-        work_time = time.perf_counter() - work_start
+        # Total time for the frame
+        frame_time = time.perf_counter() - frame_start
 
         # FPS
-        tick_start = time.perf_counter()
-        clock.tick(60)
-        tick_time = time.perf_counter() - tick_start
+        clock.tick(30)
+        fps = 1.0 / frame_time if frame_time > 0 else 0
 
         print(
-            f"Physics: {physics_time:.6f}s | "
-            f"Draw: {draw_time:.6f}s | "
-            f"Display: {display_time:.6f}s | "
-            f"Work: {work_time:.6f}s | "
-            f"Tick: {tick_time:.6f}s  | "
-            f"Number of Bodies: {bodies.number_of_bodies}"
+            f"FPS: {fps:.2f} | "
+            f"Bodies: {bodies.number_of_bodies} | "
+            f"Frame Time: {frame_time:.6f}s | "
+            f"Physics: {physics_time:.6f}s"
         )
 
     pygame.quit()

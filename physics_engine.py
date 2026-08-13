@@ -1,7 +1,7 @@
 import math
 from numba import njit
 
-eps = 0
+eps = 0.1
 
 @njit
 def calculate_force(mass, x_pos, y_pos, acc_x, acc_y, radii, c_list, c_status):
