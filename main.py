@@ -8,7 +8,7 @@ import time
 
 dt = 0.01
 response_trys = 5
-allowCollision = False
+allowCollision = True
 
 def check_if_int(prompt: str, deflaut: int):
     for x in range(response_trys):
@@ -100,6 +100,9 @@ def run_simulator():
 
         # C_Engine Part
         start = time.perf_counter()
+
+        b_pairs = np.arange(bodies.number_of_bodies)
+
         for _ in range(1):
             collision_check = physics_engine.calculate_force(
                 bodies.mass, 
@@ -109,7 +112,8 @@ def run_simulator():
                 bodies.acc_y, 
                 bodies.b_radii, 
                 bodies.collision_list, 
-                collision_check)
+                collision_check,
+                b_pairs)
             if collision_check and allowCollision:
                 bodies.collision(bodies.collision_list[0], bodies.collision_list[1], physics_engine.eps)
             bodies.update_pos(dt)

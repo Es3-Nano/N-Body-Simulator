@@ -50,6 +50,7 @@ def update_pos(dt):
     y_pos += (y_vel * dt) + (0.5 * acc_y * dt * dt)
     x_vel += acc_x * dt
     y_vel += acc_y * dt
+    intialize_acc()
 
 def collision(b1, b2, eps):
     global mass
