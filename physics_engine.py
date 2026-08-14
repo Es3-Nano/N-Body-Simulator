@@ -1,32 +1,33 @@
-import itertools
-import bodies
 import math
+from numba import njit
 
-eps = bodies.b_radii / 2
-G = 1
+eps = 0.1
 
-def calculate_force(mass, x_pos, y_pos, acc_x, acc_y, radii, c_list, c_status, b_pairs):
+@njit
+def calculate_force(mass, x_pos, y_pos, acc_x, acc_y, radii, c_list, c_status):
     c_status = False
-    for f_pair in itertools.combinations(b_pairs, r=2):
-        p1 = f_pair[0]
-        p2 = f_pair[1]
+    for i, (p1_x, p1_y) in enumerate(zip(x_pos, y_pos)):
+        x_dis = y_dis = a_mag = a_y = a_x = 0
 
-        x_dis = x_pos[p2] - x_pos[p1]
-        y_dis = y_pos[p2] - y_pos[p1]
-        r = math.sqrt((x_dis ** 2) + (y_dis ** 2))
+        for j, (p2_m, p2_x, p2_y) in enumerate(zip(mass, x_pos, y_pos)):
+            if i == j:
+                continue
+        
+            x_dis = p2_x - p1_x
+            y_dis = p2_y - p1_y
+            r = math.sqrt((x_dis ** 2) + (y_dis ** 2))   
 
-        if r <= radii and c_status == False:
-            c_list[0] = p1
-            c_list[1] = p2
-            c_status = True
+            if r <= radii:
+                if not c_status:
+                    c_list[0] = i
+                    c_list[1] = j
+                    c_status = True
+                             
+            a_mag = (p2_m) / ((r ** 2) + (eps ** 2))
+            a_x += a_mag * (x_dis / r)
+            a_y += a_mag * (y_dis / r)
 
-        c_mass = mass[p1] * mass[p2]
-        f_mag = (G * c_mass) / ((r ** 2) + (eps ** 2))
-
-        acc_x[p1] += (f_mag / mass[p1]) * (x_dis / r)
-        acc_x[p2] += (-f_mag / mass[p2]) * (x_dis / r)
-
-        acc_y[p1] += (f_mag / mass[p1]) * (y_dis / r)
-        acc_y[p2] += (-f_mag / mass[p2]) * (y_dis / r)
+        acc_y[i] = a_y
+        acc_x[i] = a_x
 
     return c_status
