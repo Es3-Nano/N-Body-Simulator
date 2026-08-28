@@ -1,40 +1,121 @@
-# import itertools
-# import bodies
-# import numpy as np
-# import math
+# ==============================
+# ENERGY / SIMULATION PROBLEMS
+# ==============================
 
-# eps = bodies.b_radii
-# G = 1
+# 1. PROBLEM: Potential energy is counted twice
+#    Each pair is calculated twice:
+#    A -> B and B -> A
+#
+#    SOLUTION:
+#    Multiply the total potential energy by 0.5:
+#
+#    return np.sum(k_energy) + 0.5 * np.sum(p_energy)
 
-# b_pairs = np.arange(bodies.number_of_bodies)
-# print(b_pairs)
 
-# def calculate_force(mass, x_pos, y_pos, acc_x, acc_y, radii, c_list, c_status):
-#     for f_pair in itertools.combinations(b_pairs, r=2):
-#         p1 = f_pair[0]
-#         p2 = f_pair[1]
+# 2. PROBLEM: Force and potential energy use different equations
+#    Acceleration currently uses:
+#    r^2 + eps
+#
+#    Potential energy currently uses:
+#    r + eps
+#
+#    These don't correspond to the same physical potential.
+#
+#    SOLUTION:
+#    Make the force equation and potential-energy equation
+#    mathematically consistent.
 
-#         x_dis = x_pos[p2] - x_pos[p1]
-#         y_dis = y_pos[p2] - y_pos[p1]
-#         r = math.sqrt((x_dis ** 2) + (y_dis ** 2))
 
-#         if r <= radii:
-#             if not c_status:
-#                 c_list[0] = p1
-#                 c_list[1] = p2
-#                 c_status = True
-                            
-#         f_mag = G ((mass[p1] * mass[p2]) / ((r ** 2) + (eps ** 2)))
+# 3. PROBLEM: Possible division by zero
+#    If two bodies have exactly the same position:
+#    r = 0
+#
+#    Then these become a problem:
+#    x_dis / r
+#    y_dis / r
+#
+#    SOLUTION:
+#    Handle r == 0 before dividing by r.
 
-#         acc_x[p1] += (f_mag / mass[p1]) * (x_dis / r)
-#         acc_x[p2] += (f_mag / mass[p2]) * (x_dis / r)
 
-#         acc_y[p1] += (f_mag / mass[p1]) * (y_dis / r)
-#         acc_y[p2] += (f_mag / mass[p2]) * (y_dis / r)
+# 4. PROBLEM: Collision detection doesn't stop the force calculation
+#    When:
+#
+#    if r <= eps:
+#        collide_with[i] = j
+#
+#    the code continues calculating the force afterward.
+#
+#    SOLUTION:
+#    Decide how collisions should interact with the force calculation
+#    and prevent invalid calculations when bodies overlap.
 
-#     return c_status
 
-import numpy as np
+# 5. PROBLEM: Timestep may be too large
+#    Current:
+#
+#    dt = 0.01
+#
+#    Large timesteps can cause numerical errors and energy drift,
+#    especially when bodies get close together.
+#
+#    SOLUTION:
+#    Test smaller values, for example:
+#
+#    dt = 0.001
+#
+#    Compare the energy behavior.
 
-mylist = np.zeros(10, dtype=np.int64)
-print(mylist)
+
+# 6. PROBLEM: Current integration method may cause energy drift
+#    update_pos() uses the current acceleration to update position
+#    and velocity.
+#
+#    SOLUTION:
+#    Consider using a symplectic integrator such as:
+#    - Leapfrog
+#    - Velocity Verlet
+#
+#    These are generally better for long-term gravitational simulations.
+
+
+# 7. PROBLEM: fastmath=True can make numerical debugging harder
+#    Current:
+#
+#    @njit(parallel=True, fastmath=True)
+#
+#    fastmath allows numerical optimizations that can slightly
+#    change floating-point calculations.
+#
+#    SOLUTION:
+#    Temporarily remove fastmath while debugging:
+#
+#    @njit(parallel=True)
+#
+#    Add fastmath back after the physics is working correctly.
+
+
+# 8. PROBLEM: Softening parameter needs to be reviewed
+#    Current:
+#
+#    eps = bodies.b_radii * 2
+#
+#    and it is being added differently to r and r^2.
+#
+#    SOLUTION:
+#    Choose a physically/mathematically consistent softening
+#    method for both acceleration and potential energy.
+
+
+# ==============================
+# RECOMMENDED ORDER TO FIX
+# ==============================
+
+# 1. Fix potential-energy double counting
+# 2. Disable collisions temporarily
+# 3. Test with a smaller dt
+# 4. Fix the force/potential consistency
+# 5. Handle r == 0 safely
+# 6. Improve the integration method
+# 7. Test without fastmath
+# 8. Revisit softening

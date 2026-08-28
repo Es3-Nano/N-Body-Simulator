@@ -1,23 +1,25 @@
+import tkinter as tk
 import pygame
 import bodies
 import physics_engine
-import scipy.stats as stats
+import numpy as np
 import random as rd
 import time
 
-dt = 0.01
+dt = 0.001
 response_trys = 5
 allowCollision = None
+collision_processed_ids = set()
 
 def start():
     global allowCollision
     print("Welcome to my N-body Simulator :]")
     body_count = check_if_int("Enter number of bodies you want to simulate: ", 1000)
-    collision_confrim = check_if_valid("Do you want collisions (y for yes, n for no? ", "y", ["n", "y"])
+    collision_confrim = check_if_valid("Do you want collisions (y for yes, n for no)? ", "n", ["n", "y"])
 
     if collision_confrim == "y":
         allowCollision = True
-    else:
+    elif collision_confrim == "n":
         allowCollision = False
 
     normal_distribution(body_count)
@@ -40,6 +42,24 @@ def check_if_int(prompt: str, deflaut: int):
     print(f"Deflauting to {deflaut}")
     return deflaut
 
+def check_if_float(prompt: str, deflaut: float):
+
+    for x in range(response_trys):
+        try:
+            response = input(prompt)
+
+            if response == "deflaut" or response == "d":
+                break
+
+            response = float(response)
+            print(f"{response} entered.")
+            return response
+        except ValueError:
+            print(f"Sorry please number a float. {response_trys - x + 1} more attempts.")
+    
+    print(f"Deflauting to {deflaut}")
+    return deflaut
+
 def check_if_valid(prompt, deflaut, response_list: list):
     for x in range(response_trys):
         print(f"Options to enter are {', '.join(response_list)}")
@@ -57,26 +77,22 @@ def normal_distribution(body_count):
     x_coordinates = []
     y_coordinates = []
 
-    x_radius = check_if_int("Enter the radius of the normal distribution in pixels for X: ", 0.5 * bodies.screen_width)
-    y_radius = check_if_int("Enter the radius of the normal distribution in pixels for Y: ", 0.5 * bodies.screen_height)
-
-    mu_x = 0
-    mu_y = 0
-    sp = 30
+    radius = check_if_int("Enter the radius of the normal distribution in pixels: ", 0.5 * min(bodies.screen_width, bodies.screen_height))
     mass_select = None
 
-    x_a, x_b = -x_radius / sp, x_radius / sp
-    y_a, y_b = -y_radius / sp, y_radius / sp
+    r = np.random.uniform(0, radius, body_count)
+    theta = np.random.uniform(0, 2 * np.pi, body_count)
 
-    x_coordinates = stats.truncnorm.rvs(x_a, x_b, mu_x, sp, body_count)
-    y_coordinates = stats.truncnorm.rvs(y_a, y_b, mu_y, sp, body_count)
+    x_coordinates = r * np.cos(theta)
+    y_coordinates = r * np.sin(theta)
 
-    mass_request = check_if_valid("Do you want randon masses (r) or same mass (s) for all bodies? ", "s", ["s", "r"])
-    
+    mass_request = check_if_valid("Do you want randon masses (r) or same mass (s) for all bodies? ","s", ["s", "r"])
+
     if mass_request == "s":
         mass_select = check_if_int("Enter the mass you want for all bobies: ", 100)
+
         for x, y in zip(x_coordinates, y_coordinates):
-            bodies.create_body(mass_select, x, y)
+                bodies.create_body(mass_select, x, y)
 
     elif mass_request == "r":
         lowest_mass = check_if_int("Enter the lowest mass you want for any body: ", 100)
@@ -86,20 +102,55 @@ def normal_distribution(body_count):
         for m, x, y in zip(mass_range, x_coordinates, y_coordinates):
             bodies.create_body(m, x, y)
 
-    bodies.intialize_acc()
+    bodies.intialize_arrays()
+
+def control_panel():
+    control_panel_width = 500
+    control_panel_height = 300
+
+    root = tk.Tk()
+
+    root.title("Simulation Control Panel")
+    root.configure(background="white")
+    root.minsize(control_panel_width, control_panel_height - 100)
+    root.maxsize(control_panel_width, control_panel_height + 200)
+    root.geometry(f"{control_panel_width}x{control_panel_height}+1400+600")
+
+    frame = tk.Frame(root, width=control_panel_width * 0.9, height=control_panel_height * 0.9, bg="white")
+    frame.place(relx=0.5, rely=0.5, anchor="center")
+
+    font_selected = ("Sn Pro", 15)
+
+    fps_label = tk.Label(frame, text="FPS: 0", font=font_selected, bg="white", anchor="w", width=25)
+    total_e_label = tk.Label(frame, text="Total Energy: 0", font=font_selected, bg="white", anchor="w", width=25)
+    num_bodies_label = tk.Label(frame, text="Number of Bodies: 0", font=font_selected, bg="white", anchor="w", width=25)
+    physics_time_label = tk.Label(frame, text="Physics Time: 0", font=font_selected, bg="white", anchor="w", width=25)
+
+    fps_label.pack(pady=4)
+    total_e_label.pack(pady=4)
+    num_bodies_label.pack(pady=4)
+    physics_time_label.pack(pady=4)
+
+    return root, fps_label, total_e_label, num_bodies_label, physics_time_label
+
+def update_control_panel(fps, total_e, num_bodies, physics_time, fps_label, total_e_label, num_bodies_label, physics_time_label):
+    fps_label.config(text=f"FPS: {fps}")
+    total_e_label.config(text=f"Total Energy: {total_e}")
+    num_bodies_label.config(text=f"Number of Bodies: {num_bodies}")
+    physics_time_label.config(text=f"Physics Time: {physics_time}")
 
 def run_simulator():
     pygame.init()
     screen = pygame.display.set_mode((bodies.screen_width, bodies.screen_height))
-    pygame.display.set_caption("Simulator ツ")
+    root, fps_label, total_e_label, num_bodies_label, physics_time_label = control_panel()
+    pygame.display.set_caption("My Simulator ツ")
     clock = pygame.time.Clock()
 
     running = True
-    collision_check = False
-    print("Running")
+    print("Running simulation...")
 
     while running:
-
+        root.update()
         frame_start = time.perf_counter()
 
         screen.fill((0, 0, 0))
@@ -107,44 +158,49 @@ def run_simulator():
             if event.type == pygame.QUIT:
                 running = False
 
-        start = time.perf_counter()
-        for _ in range(1):
-            collision_check = physics_engine.calculate_force(
-                bodies.mass, 
-                bodies.x_pos, 
-                bodies.y_pos, 
-                bodies.acc_x, 
-                bodies.acc_y, 
-                bodies.b_radii, 
-                bodies.collision_list, 
-                collision_check)
+        bodies.old_acc_x = bodies.acc_x.copy()
+        bodies.old_acc_y = bodies.acc_y.copy()
+        bodies.intialize_arrays()
 
-            if collision_check and allowCollision and len(bodies.collision_list) >= 2:
-                bodies.collision(
-                    bodies.collision_list[0],
-                    bodies.collision_list[1],
-                    physics_engine.eps)
-                bodies.collision_list.clear()
+        start = time.perf_counter()
+        for _ in range(10):
+            collide_with = physics_engine.calculate_force(
+                bodies.mass,
+                bodies.x_pos,
+                bodies.y_pos,
+                bodies.acc_x,
+                bodies.acc_y,
+                bodies.p_energy)
+
+            if allowCollision:
+                for i, j in enumerate(collide_with):
+                    if j == -1:
+                        continue
+                    if i in collision_processed_ids or j in collision_processed_ids:
+                        continue
+
+                    bodies.collision(i, j)
+                    collision_processed_ids.add(i)
+                    collision_processed_ids.add(j)
+                    bodies.dead_list = np.append(bodies.dead_list, j)
+
+                collision_processed_ids.clear()
+                for i in sorted(bodies.dead_list, reverse=True):
+                    if i != -1:
+                        bodies.delete_body(i)
 
             bodies.update_pos(dt)
+            total_energy = bodies.calculate_energies()
         physics_time = time.perf_counter() - start
 
         bodies.draw_all_bodies(screen)
         pygame.display.update()
 
-        # Total time for the frame
         frame_time = time.perf_counter() - frame_start
 
-        # FPS
         clock.tick(30)
         fps = 1 / frame_time if frame_time > 0 else 0
-
-        print(
-            f"FPS: {fps:.2f} | "
-            f"Bodies: {bodies.number_of_bodies} | "
-            f"Frame Time: {frame_time:.6f}s | "
-            f"Physics: {physics_time:.6f}s"
-        )
+        update_control_panel(fps, total_energy, bodies.number_of_bodies, physics_time, fps_label, total_e_label, num_bodies_label, physics_time_label)
 
     pygame.quit()
 
