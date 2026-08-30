@@ -1,12 +1,12 @@
-import tkinter as tk
 import pygame
 import bodies
 import physics_engine
+import control_panel
 import numpy as np
 import random as rd
 import time
 
-dt = 0.001
+dt = 0.01
 response_trys = 5
 allowCollision = None
 collision_processed_ids = set()
@@ -22,7 +22,7 @@ def start():
     elif collision_confrim == "n":
         allowCollision = False
 
-    normal_distribution(body_count)
+    intial_disk(body_count)
 
 def check_if_int(prompt: str, deflaut: int):
 
@@ -73,7 +73,7 @@ def check_if_valid(prompt, deflaut, response_list: list):
     print(f"Deflauting to {deflaut}")
     return deflaut
 
-def normal_distribution(body_count):    
+def intial_disk(body_count):    
     x_coordinates = []
     y_coordinates = []
 
@@ -104,47 +104,21 @@ def normal_distribution(body_count):
 
     bodies.intialize_arrays()
 
-def control_panel():
-    control_panel_width = 500
-    control_panel_height = 300
-
-    root = tk.Tk()
-
-    root.title("Simulation Control Panel")
-    root.configure(background="white")
-    root.minsize(control_panel_width, control_panel_height - 100)
-    root.maxsize(control_panel_width, control_panel_height + 200)
-    root.geometry(f"{control_panel_width}x{control_panel_height}+1400+600")
-
-    frame = tk.Frame(root, width=control_panel_width * 0.9, height=control_panel_height * 0.9, bg="white")
-    frame.place(relx=0.5, rely=0.5, anchor="center")
-
-    font_selected = ("Sn Pro", 15)
-
-    fps_label = tk.Label(frame, text="FPS: 0", font=font_selected, bg="white", anchor="w", width=25)
-    total_e_label = tk.Label(frame, text="Total Energy: 0", font=font_selected, bg="white", anchor="w", width=25)
-    num_bodies_label = tk.Label(frame, text="Number of Bodies: 0", font=font_selected, bg="white", anchor="w", width=25)
-    physics_time_label = tk.Label(frame, text="Physics Time: 0", font=font_selected, bg="white", anchor="w", width=25)
-
-    fps_label.pack(pady=4)
-    total_e_label.pack(pady=4)
-    num_bodies_label.pack(pady=4)
-    physics_time_label.pack(pady=4)
-
-    return root, fps_label, total_e_label, num_bodies_label, physics_time_label
-
-def update_control_panel(fps, total_e, num_bodies, physics_time, fps_label, total_e_label, num_bodies_label, physics_time_label):
-    fps_label.config(text=f"FPS: {fps}")
-    total_e_label.config(text=f"Total Energy: {total_e}")
-    num_bodies_label.config(text=f"Number of Bodies: {num_bodies}")
-    physics_time_label.config(text=f"Physics Time: {physics_time}")
-
 def run_simulator():
     pygame.init()
     screen = pygame.display.set_mode((bodies.screen_width, bodies.screen_height))
-    root, fps_label, total_e_label, num_bodies_label, physics_time_label = control_panel()
+    root, fps_label, num_bodies_label, physics_time_label = control_panel.control_panel()
     pygame.display.set_caption("My Simulator ツ")
     clock = pygame.time.Clock()
+
+    physics_engine.calculate_force(
+        bodies.mass,
+        bodies.x_pos,
+        bodies.y_pos,
+        bodies.acc_x,
+        bodies.acc_y)
+    bodies.old_acc_x = bodies.acc_x.copy()
+    bodies.old_acc_y = bodies.acc_y.copy()
 
     running = True
     print("Running simulation...")
@@ -156,21 +130,19 @@ def run_simulator():
         screen.fill((0, 0, 0))
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
+                root.destroy()
                 running = False
 
-        bodies.old_acc_x = bodies.acc_x.copy()
-        bodies.old_acc_y = bodies.acc_y.copy()
         bodies.intialize_arrays()
 
         start = time.perf_counter()
-        for _ in range(10):
+        for _ in range(50):
             collide_with = physics_engine.calculate_force(
                 bodies.mass,
                 bodies.x_pos,
                 bodies.y_pos,
                 bodies.acc_x,
-                bodies.acc_y,
-                bodies.p_energy)
+                bodies.acc_y)
 
             if allowCollision:
                 for i, j in enumerate(collide_with):
@@ -190,17 +162,18 @@ def run_simulator():
                         bodies.delete_body(i)
 
             bodies.update_pos(dt)
-            total_energy = bodies.calculate_energies()
+            bodies.old_acc_x = bodies.acc_x.copy()
+            bodies.old_acc_y = bodies.acc_y.copy()
+
         physics_time = time.perf_counter() - start
 
         bodies.draw_all_bodies(screen)
         pygame.display.update()
-
         frame_time = time.perf_counter() - frame_start
 
         clock.tick(30)
         fps = 1 / frame_time if frame_time > 0 else 0
-        update_control_panel(fps, total_energy, bodies.number_of_bodies, physics_time, fps_label, total_e_label, num_bodies_label, physics_time_label)
+        control_panel.update_control_panel(fps, bodies.number_of_bodies, physics_time, fps_label, num_bodies_label, physics_time_label)
 
     pygame.quit()
 

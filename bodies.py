@@ -6,9 +6,6 @@ screen_height = 720
 number_of_bodies = 0
 b_radii = 3
 
-# computer_screen_width = 1920
-# computer_screen_height = 1080
-
 mass = np.array([])
 x_pos = np.array([], dtype='d')
 y_pos = np.array([], dtype='d')
@@ -20,21 +17,7 @@ acc_y = np.array([], dtype='d')
 old_acc_x = np.array([], dtype='d')
 old_acc_y = np.array([], dtype='d')
 
-p_energy = np.array([], dtype='d')
-k_energy = np.array([], dtype='d')
 dead_list = np.array([], dtype='d')
-
-def calculate_energies():
-    global mass
-    global x_vel
-    global y_vel
-    global k_energy
-    global p_energy
-    
-    k_vel = np.square(x_vel) + np.square(y_vel)
-    k_energy = 0.5 * k_vel * mass
-
-    return np.sum(k_energy) + 0.5 * np.sum(p_energy)
 
 def create_body(m, x_p, y_p, x_v = 0, y_v = 0):
     global mass
@@ -57,13 +40,9 @@ def draw_all_bodies(surface):
 def intialize_arrays():
     global acc_x
     global acc_y
-    global p_energy
-    global k_energy
     global dead_list
     acc_x = np.zeros(number_of_bodies, dtype='d')
     acc_y = np.zeros(number_of_bodies, dtype='d')
-    p_energy = np.zeros(number_of_bodies, dtype='d')
-    k_energy = np.zeros(number_of_bodies, dtype='d')
     dead_list = np.full(number_of_bodies, -1, dtype=np.int64)
 
 def update_pos(dt):
@@ -72,8 +51,8 @@ def update_pos(dt):
     global x_vel
     global y_vel
 
-    x_pos += (x_vel * dt) + (0.5 * old_acc_x * dt * dt)
-    y_pos += (y_vel * dt) + (0.5 * old_acc_y * dt * dt)
+    x_pos += (x_vel * dt) + (0.5 * old_acc_x * dt ** 2)
+    y_pos += (y_vel * dt) + (0.5 * old_acc_y * dt ** 2)
     x_vel += (old_acc_x + acc_x) * 0.5 * dt
     y_vel += (old_acc_y + acc_y) * 0.5 * dt
 
