@@ -10,6 +10,8 @@ dt = 0.01
 response_trys = 5
 allowCollision = None
 collision_processed_ids = set()
+paused = False
+message = "Running simulation"
 
 def start():
     global allowCollision
@@ -34,10 +36,16 @@ def check_if_int(prompt: str, deflaut: int):
                 break
 
             response = int(response)
+
+            if response <= 0:
+                print(f"Please enter a positive number. {response_trys - x + 1} more attempts.")
+                continue
+
             print(f"{response} entered.")
             return response
         except ValueError:
             print(f"Sorry please number a number. {response_trys - x + 1} more attempts.")
+            
     
     print(f"Deflauting to {deflaut}")
     return deflaut
@@ -50,6 +58,10 @@ def check_if_float(prompt: str, deflaut: float):
 
             if response == "deflaut" or response == "d":
                 break
+
+            if response <= 0:
+                print(f"Please enter a number. {response_trys - x + 1} more attempts.")
+                continue
 
             response = float(response)
             print(f"{response} entered.")
@@ -104,76 +116,81 @@ def intial_disk(body_count):
 
     bodies.intialize_arrays()
 
+def toggle_pause():
+    global paused
+    global message
+    if paused:
+        message = "Running simulation"
+    else:
+        message = "Simulation paused"
+    paused = not paused
+
 def run_simulator():
     pygame.init()
     screen = pygame.display.set_mode((bodies.screen_width, bodies.screen_height))
-    root, fps_label, num_bodies_label, physics_time_label = control_panel.control_panel()
+    root, fps_label, num_bodies_label, physics_time_label, _, message_label = control_panel.control_panel(toggle_pause)
     pygame.display.set_caption("My Simulator ツ")
     clock = pygame.time.Clock()
 
-    physics_engine.calculate_force(
-        bodies.mass,
-        bodies.x_pos,
-        bodies.y_pos,
-        bodies.acc_x,
-        bodies.acc_y)
+    physics_engine.calculate_force(bodies.mass,
+        bodies.x_pos,bodies.y_pos,bodies.acc_x,bodies.acc_y)
     bodies.old_acc_x = bodies.acc_x.copy()
     bodies.old_acc_y = bodies.acc_y.copy()
 
     running = True
-    print("Running simulation...")
-
     while running:
-        root.update()
         frame_start = time.perf_counter()
 
         screen.fill((0, 0, 0))
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 root.destroy()
                 running = False
-
-        bodies.intialize_arrays()
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
+                toggle_pause()
 
         start = time.perf_counter()
-        for _ in range(50):
-            collide_with = physics_engine.calculate_force(
-                bodies.mass,
-                bodies.x_pos,
-                bodies.y_pos,
-                bodies.acc_x,
-                bodies.acc_y)
 
-            if allowCollision:
-                for i, j in enumerate(collide_with):
-                    if j == -1:
-                        continue
-                    if i in collision_processed_ids or j in collision_processed_ids:
-                        continue
+        if not paused:
+            for _ in range(1):
+                bodies.intialize_arrays()
+                collide_with = physics_engine.calculate_force(bodies.mass,bodies.x_pos,
+                    bodies.y_pos,bodies.acc_x,bodies.acc_y)
 
-                    bodies.collision(i, j)
-                    collision_processed_ids.add(i)
-                    collision_processed_ids.add(j)
-                    bodies.dead_list = np.append(bodies.dead_list, j)
+                if allowCollision:
+                    for i, j in enumerate(collide_with):
+                        if j == -1:
+                            continue
+                        if i in collision_processed_ids or j in collision_processed_ids:
+                            continue
 
-                collision_processed_ids.clear()
-                for i in sorted(bodies.dead_list, reverse=True):
-                    if i != -1:
-                        bodies.delete_body(i)
+                        bodies.collision(i, j)
+                        collision_processed_ids.add(i)
+                        collision_processed_ids.add(j)
+                        bodies.dead_list = np.append(bodies.dead_list, j)
 
-            bodies.update_pos(dt)
-            bodies.old_acc_x = bodies.acc_x.copy()
-            bodies.old_acc_y = bodies.acc_y.copy()
+                    collision_processed_ids.clear()
+                    for i in sorted(np.unique(bodies.dead_list), reverse=True):
+                        if i != -1 and 0 <= i < len(bodies.mass):
+                            bodies.delete_body(i)
+
+                bodies.update_pos(dt)
+                bodies.old_acc_x = bodies.acc_x.copy()
+                bodies.old_acc_y = bodies.acc_y.copy()
 
         physics_time = time.perf_counter() - start
 
         bodies.draw_all_bodies(screen)
         pygame.display.update()
+        root.update()
+
         frame_time = time.perf_counter() - frame_start
 
-        clock.tick(30)
-        fps = 1 / frame_time if frame_time > 0 else 0
-        control_panel.update_control_panel(fps, bodies.number_of_bodies, physics_time, fps_label, num_bodies_label, physics_time_label)
+        clock.tick(60)
+        if frame_time > 0: fps = 1 / frame_time
+        else: 0
+        control_panel.update_control_panel(fps, bodies.number_of_bodies, physics_time, fps_label, num_bodies_label, physics_time_label, message_label, message)
 
     pygame.quit()
 

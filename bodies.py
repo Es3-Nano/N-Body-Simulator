@@ -16,8 +16,10 @@ acc_x = np.array([], dtype='d')
 acc_y = np.array([], dtype='d')
 old_acc_x = np.array([], dtype='d')
 old_acc_y = np.array([], dtype='d')
-
 dead_list = np.array([], dtype='d')
+
+circle = pygame.Surface((10, 10), pygame.SRCALPHA)
+pygame.draw.circle(circle, (255, 255, 255), (5, 5), b_radii)
 
 def create_body(m, x_p, y_p, x_v = 0, y_v = 0):
     global mass
@@ -34,8 +36,8 @@ def create_body(m, x_p, y_p, x_v = 0, y_v = 0):
     number_of_bodies += 1
 
 def draw_all_bodies(surface):
-    for a, b in zip(x_pos, y_pos):
-        pygame.draw.circle(surface, (255, 255, 255), (a, b) , b_radii)
+    for x, y in zip(x_pos, y_pos):
+        surface.blit(circle, (x - b_radii, y - b_radii))
 
 def intialize_arrays():
     global acc_x

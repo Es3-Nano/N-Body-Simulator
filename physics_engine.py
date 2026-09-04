@@ -1,10 +1,10 @@
 import math
 import numpy as np
-from numba import njit, prange, set_num_threads
+from numba import njit, prange
 import bodies
 
 collisiosn_distance = bodies.b_radii * 2
-epsilon = 5.0 
+epsilon =  bodies.b_radii/2
 
 @njit(parallel=True, fastmath=True)
 def calculate_force(mass, x_pos, y_pos, acc_x, acc_y):
