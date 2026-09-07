@@ -10,8 +10,13 @@ dt = 0.01
 response_trys = 5
 allowCollision = None
 collision_processed_ids = set()
+add_body_request = False
+delete_body_request = False
+pending_body_pos = None
 paused = False
+softening =  bodies.b_radii/2
 message = "Running simulation"
+fast_foward_steps = 1
 
 def start():
     global allowCollision
@@ -125,14 +130,45 @@ def toggle_pause():
         message = "Simulation paused"
     paused = not paused
 
+def enter_add_body_mode():
+    global add_body_mode, delete_body_mode, message
+    add_body_mode = True
+    delete_body_mode = False
+    message = "Click to place new body"
+
+def enter_delete_body_mode():
+    global add_body_mode, delete_body_mode, message
+    delete_body_mode = True
+    add_body_mode = False
+    message = "Click a body to delete"
+
+def clear_body_modes():
+    global add_body_mode, delete_body_mode, message
+    add_body_mode = False
+    delete_body_mode = False
+    message = "Running simulation" if not paused else "Simulation paused"
+
+def set_dt(value):
+    global dt
+    dt = float(value)
+
+def set_fast_forward_steps(value):
+    global fast_foward_steps
+    fast_foward_steps = int(value)
+
+def set_softening(value):
+    global softening
+    softening = float(value)
+
 def run_simulator():
     pygame.init()
     screen = pygame.display.set_mode((bodies.screen_width, bodies.screen_height))
-    root, fps_label, num_bodies_label, physics_time_label, _, message_label = control_panel.control_panel(toggle_pause)
+    root, fps_label, num_bodies_label, physics_time_label, _, message_label = control_panel.control_panel(
+    toggle_pause, set_dt, set_softening, set_fast_forward_steps, enter_add_body_mode, enter_delete_body_mode)
     pygame.display.set_caption("My Simulator ツ")
     clock = pygame.time.Clock()
 
-    physics_engine.calculate_force(bodies.mass,
+    physics_engine.calculate_force(softening, bodies.mass,
         bodies.x_pos,bodies.y_pos,bodies.acc_x,bodies.acc_y)
     bodies.old_acc_x = bodies.acc_x.copy()
     bodies.old_acc_y = bodies.acc_y.copy()
@@ -147,16 +183,31 @@ def run_simulator():
             if event.type == pygame.QUIT:
                 root.destroy()
                 running = False
+
             if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
                 toggle_pause()
+
+            if event.type == pygame.MOUSEBUTTONDOWN and add_body_mode:
+                pending_body_pos = event.pos
+                control_panel.open_add_body_popup(root, pending_body_pos, bodies.create_body)
+                clear_body_modes()
+
+            if event.type == pygame.MOUSEBUTTONDOWN and delete_body_mode:
+                click_x, click_y = event.pos
+                distances = np.sqrt((bodies.x_pos - click_x)**2 + (bodies.y_pos - click_y)**2)
+                nearest = np.argmin(distances)
+
+                if distances[nearest] <= bodies.b_radii * 3:
+                    bodies.delete_body(nearest)
+                clear_body_modes()
 
         start = time.perf_counter()
 
         if not paused:
-            for _ in range(1):
+            for _ in range(fast_foward_steps):
                 bodies.intialize_arrays()
-                collide_with = physics_engine.calculate_force(bodies.mass,bodies.x_pos,
-                    bodies.y_pos,bodies.acc_x,bodies.acc_y)
+                collide_with = physics_engine.calculate_force(softening, bodies.mass,bodies.x_pos, 
+                bodies.y_pos,bodies.acc_x,bodies.acc_y)
 
                 if allowCollision:
                     for i, j in enumerate(collide_with):

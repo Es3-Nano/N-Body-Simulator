@@ -4,10 +4,9 @@ from numba import njit, prange
 import bodies
 
 collisiosn_distance = bodies.b_radii * 2
-epsilon =  bodies.b_radii/2
 
 @njit(parallel=True, fastmath=True)
-def calculate_force(mass, x_pos, y_pos, acc_x, acc_y):
+def calculate_force(epsilon, mass, x_pos, y_pos, acc_x, acc_y):
     num_particles = len(x_pos)
     collide_with = np.full(num_particles, -1, dtype=np.int64)
 

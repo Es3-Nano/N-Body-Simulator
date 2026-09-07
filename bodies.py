@@ -4,7 +4,7 @@ import numpy as np
 screen_width = 1280
 screen_height = 720
 number_of_bodies = 0
-b_radii = 3
+b_radii = 4
 
 mass = np.array([])
 x_pos = np.array([], dtype='d')
@@ -27,12 +27,20 @@ def create_body(m, x_p, y_p, x_v = 0, y_v = 0):
     global y_pos
     global x_vel
     global y_vel
+    global old_acc_x
+    global old_acc_y
+    global acc_x
+    global acc_y
     global number_of_bodies
     mass = np.append(mass, m)
     x_pos = np.append(x_pos, x_p + screen_width / 2)
     y_pos = np.append(y_pos, screen_height / 2 - y_p)
     x_vel = np.append(x_vel, x_v)
     y_vel = np.append(y_vel, y_v)
+    old_acc_x = np.append(old_acc_x, 0.0)
+    old_acc_y = np.append(old_acc_y, 0.0)
+    acc_x = np.append(acc_x, 0.0)
+    acc_y = np.append(acc_y, 0.0)
     number_of_bodies += 1
 
 def draw_all_bodies(surface):
