@@ -77,6 +77,7 @@ def open_add_body_popup(root, position, create_body_callback):
     def submit():
         for i in range(response_trys):
             try:
+                # Will fix later
                 m = float(mass_entry.get())
                 xv = float(xvel_entry.get())
                 yv = float(yvel_entry.get())
