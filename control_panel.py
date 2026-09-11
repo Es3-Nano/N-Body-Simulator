@@ -9,7 +9,7 @@ def control_panel(toggle_pause_callback, dt_change_callback, softening_change_ca
 
     root = tk.Tk()
 
-    root.title("Da Simulation Control Panel")
+    root.title("Simulation Control Panel")
     root.configure(background="black")
     root.minsize(control_panel_width, control_panel_height - 100)
     root.maxsize(control_panel_width, control_panel_height + 200)
@@ -66,26 +66,25 @@ def open_add_body_popup(root, position, create_body_callback):
     mass_entry = tk.Entry(popup)
     mass_entry.pack()
 
-    tk.Label(popup, text="x velocity:").pack()
+    tk.Label(popup, text="X Velocity:").pack()
     xvel_entry = tk.Entry(popup)
     xvel_entry.pack()
 
-    tk.Label(popup, text="y velocity:").pack()
+    tk.Label(popup, text="Y Velocity:").pack()
     yvel_entry = tk.Entry(popup)
     yvel_entry.pack()
 
     def submit():
-        for i in range(response_trys):
-            try:
-                # Will fix later
-                m = float(mass_entry.get())
-                xv = float(xvel_entry.get())
-                yv = float(yvel_entry.get())
-            except ValueError:
-                tk.Label(popup, text=f"Invalid input, using defaults no trys left. Number of trys left is {i-1}", fg="red").pack()
-                m, xv, yv = 100.0, 0.0, 0.0
-
-        create_body_callback(m, position[0] - bodies.screen_width / 2, bodies.screen_height / 2 - position[1], xv, yv)
+        try:
+            m = float(mass_entry.get())
+            xv = float(xvel_entry.get())
+            yv = float(yvel_entry.get())
+        except ValueError:
+            tk.Label(popup, text="Invalid input, using defaults", fg="red").pack()
+            m, xv, yv = 100.0, 0.0, 0.0
+        # position is screen coords already; create_body expects sim coords
+        create_body_callback(m, position[0] - bodies.screen_width / 2,
+                              bodies.screen_height / 2 - position[1], xv, yv)
         popup.destroy()
 
     submit_btn = tk.Button(popup, text="Add", command=submit)
