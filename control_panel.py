@@ -79,6 +79,9 @@ def open_add_body_popup(root, position, create_body_callback):
             m = float(mass_entry.get())
             xv = float(xvel_entry.get())
             yv = float(yvel_entry.get())
+            if m <= 0:
+                tk.Label(popup, text="Mass must be greater than 0", fg="red").pack()
+                return
         except ValueError:
             tk.Label(popup, text="Invalid input, using defaults", fg="red").pack()
             m, xv, yv = 100.0, 0.0, 0.0

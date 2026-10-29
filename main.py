@@ -33,12 +33,12 @@ def check_if_int(prompt: str, deflaut: int):
         try:
             response = int(input(prompt))
             if response < 0:
-                print(f"Please enter an integer. {response_trys - x + 1} more attempts.")
+                print(f"Please enter an integer. {response_trys - x - 1} more attempts.")
                 continue
             print(f"{response} entered.")
             return response
         except ValueError:
-            print(f"Sorry please number a number. {response_trys - x + 1} more attempts.")
+            print(f"Sorry please number a number. {response_trys - x - 1} more attempts.")
     print(f"Deflauting to {deflaut}")
     return deflaut
 
@@ -68,15 +68,15 @@ def check_if_valid(prompt, deflaut, response_list: list):
     return deflaut
 
 def intial_disk(body_count):    
-    x_coordinates = []
-    y_coordinates = []
+    x_coordinates = y_coordinates = []
 
     radius = check_if_int("Enter the radius of the normal distribution in pixels: ", 0.5 * min(bodies.screen_width, bodies.screen_height))
-    mass_select = None
+    
     r = np.random.uniform(0, radius, body_count)
     theta = np.random.uniform(0, 2 * np.pi, body_count)
     x_coordinates = r * np.cos(theta)
     y_coordinates = r * np.sin(theta)
+    
     mass_request = check_if_valid("Do you want randon masses (r) or same mass (s) for all bodies? ","s", ["s", "r"])
 
     if mass_request == "s":
@@ -90,6 +90,7 @@ def intial_disk(body_count):
         mass_range = [rd.randint(lowest_mass, highest_mass) for _ in range(body_count)]
         for m, x, y in zip(mass_range, x_coordinates, y_coordinates):
             bodies.create_body(m, x, y)
+    
     bodies.intialize_arrays()
 
 def toggle_pause():

@@ -16,7 +16,7 @@ acc_x = np.array([], dtype='d')
 acc_y = np.array([], dtype='d')
 old_acc_x = np.array([], dtype='d')
 old_acc_y = np.array([], dtype='d')
-dead_list = np.array([], dtype='d')
+dead_list = np.array([], dtype='i')
 
 circle = pygame.Surface((10, 10), pygame.SRCALPHA)
 pygame.draw.circle(circle, (255, 255, 255), (5, 5), b_radii)
