@@ -10,9 +10,6 @@ dt = 0.01
 response_trys = 5
 allowCollision = None
 collision_processed_ids = set()
-add_body_request = False
-delete_body_request = False
-pending_body_pos = None
 paused = False
 softening =  bodies.b_radii/2
 message = "Running simulation"
@@ -32,43 +29,26 @@ def start():
     intial_disk(body_count)
 
 def check_if_int(prompt: str, deflaut: int):
-
     for x in range(response_trys):
         try:
-            response = input(prompt)
-
-            if response == "deflaut" or response == "d":
-                break
-
-            response = int(response)
-
-            if response <= 0:
-                print(f"Please enter a positive number. {response_trys - x + 1} more attempts.")
+            response = int(input(prompt))
+            if response < 0:
+                print(f"Please enter an integer. {response_trys - x + 1} more attempts.")
                 continue
-
             print(f"{response} entered.")
             return response
         except ValueError:
             print(f"Sorry please number a number. {response_trys - x + 1} more attempts.")
-            
-    
     print(f"Deflauting to {deflaut}")
     return deflaut
 
 def check_if_float(prompt: str, deflaut: float):
-
     for x in range(response_trys):
         try:
-            response = input(prompt)
-
-            if response == "deflaut" or response == "d":
-                break
-
+            response = float(input(prompt))
             if response <= 0:
                 print(f"Please enter a number. {response_trys - x + 1} more attempts.")
                 continue
-
-            response = float(response)
             print(f"{response} entered.")
             return response
         except ValueError:
@@ -81,12 +61,9 @@ def check_if_valid(prompt, deflaut, response_list: list):
     for x in range(response_trys):
         print(f"Options to enter are {', '.join(response_list)}")
         response = input(prompt).strip().lower()
-        if response == "deflaut" or response == "d":
-            break
-        elif response in response_list:
+        if response in response_list:
             return response
         print(f"Sorry please number a number. {response_trys - x + 1} more attempts.")
-    
     print(f"Deflauting to {deflaut}")
     return deflaut
 
@@ -96,29 +73,23 @@ def intial_disk(body_count):
 
     radius = check_if_int("Enter the radius of the normal distribution in pixels: ", 0.5 * min(bodies.screen_width, bodies.screen_height))
     mass_select = None
-
     r = np.random.uniform(0, radius, body_count)
     theta = np.random.uniform(0, 2 * np.pi, body_count)
-
     x_coordinates = r * np.cos(theta)
     y_coordinates = r * np.sin(theta)
-
     mass_request = check_if_valid("Do you want randon masses (r) or same mass (s) for all bodies? ","s", ["s", "r"])
 
     if mass_request == "s":
         mass_select = check_if_int("Enter the mass you want for all bobies: ", 100)
-
         for x, y in zip(x_coordinates, y_coordinates):
                 bodies.create_body(mass_select, x, y)
 
     elif mass_request == "r":
         lowest_mass = check_if_int("Enter the lowest mass you want for any body: ", 100)
         highest_mass = check_if_int("Enter the highest mass you want for any body: ", 1000)
-
         mass_range = [rd.randint(lowest_mass, highest_mass) for _ in range(body_count)]
         for m, x, y in zip(mass_range, x_coordinates, y_coordinates):
             bodies.create_body(m, x, y)
-
     bodies.intialize_arrays()
 
 def toggle_pause():
@@ -168,17 +139,14 @@ def run_simulator():
     pygame.display.set_caption("My Simulator ツ")
     clock = pygame.time.Clock()
 
-    physics_engine.calculate_force(softening, bodies.mass,
-        bodies.x_pos,bodies.y_pos,bodies.acc_x,bodies.acc_y)
+    physics_engine.calculate_force(softening, bodies.mass,bodies.x_pos,bodies.y_pos,bodies.acc_x,bodies.acc_y)
     bodies.old_acc_x = bodies.acc_x.copy()
     bodies.old_acc_y = bodies.acc_y.copy()
 
     running = True
     while running:
-        frame_start = time.perf_counter()
-
         screen.fill((0, 0, 0))
-
+        if bodies.number_of_bodies == 0: clear_body_modes(); continue
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 root.destroy()
@@ -192,7 +160,7 @@ def run_simulator():
                 control_panel.open_add_body_popup(root, pending_body_pos, bodies.create_body)
                 clear_body_modes()
 
-            if event.type == pygame.MOUSEBUTTONDOWN and delete_body_mode:
+            if event.type == pygame.MOUSEBUTTONDOWN and delete_body_mode and bodies.number_of_bodies != 0:
                 click_x, click_y = event.pos
                 distances = np.sqrt((bodies.x_pos - click_x)**2 + (bodies.y_pos - click_y)**2)
                 nearest = np.argmin(distances)
@@ -236,11 +204,9 @@ def run_simulator():
         pygame.display.update()
         root.update()
 
-        frame_time = time.perf_counter() - frame_start
-
+        fps = clock.get_fps()
         clock.tick(60)
-        if frame_time > 0: fps = 1 / frame_time
-        else: 0
+
         control_panel.update_control_panel(fps, bodies.number_of_bodies, physics_time, fps_label, num_bodies_label, physics_time_label, message_label, message)
 
     pygame.quit()
