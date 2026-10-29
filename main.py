@@ -217,32 +217,6 @@ def log_step():
                 f"{bodies.x_vel[i]:.4e}, {bodies.y_vel[i]:.4e}, {bodies.acc_x[i]:.4e}, {bodies.acc_y[i]:.4e}\n")
     f.flush()
 
-def pygame_events():
-    global need_force_refresh, root
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
-
-        if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
-            toggle_pause()
-
-        if event.type == pygame.MOUSEBUTTONDOWN and add_body_mode:
-            control_panel.open_add_body_popup(root, event.pos, add_body)
-            clear_body_modes()
-
-        if event.type == pygame.MOUSEBUTTONDOWN and delete_body_mode:
-            if bodies.number_of_bodies == 0:
-                clear_body_modes()
-                continue
-            click_x, click_y = event.pos
-            distances = np.sqrt((bodies.x_pos - click_x) ** 2 + (bodies.y_pos - click_y) ** 2)
-            nearest = np.argmin(distances)
-
-            if distances[nearest] <= bodies.b_radii * 3:
-                bodies.delete_body(nearest)
-                need_force_refresh = True
-            clear_body_modes()
-
 def run_simulator():
     global need_force_refresh
     pygame.init()
@@ -258,7 +232,31 @@ def run_simulator():
     running = True
     while running:
         screen.fill((0, 0, 0))
-        pygame_events(root)
+        
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
+                toggle_pause()
+
+            if event.type == pygame.MOUSEBUTTONDOWN and add_body_mode:
+                control_panel.open_add_body_popup(root, event.pos, add_body)
+                clear_body_modes()
+
+            if event.type == pygame.MOUSEBUTTONDOWN and delete_body_mode:
+                if bodies.number_of_bodies == 0:
+                    clear_body_modes()
+                    continue
+                click_x, click_y = event.pos
+                distances = np.sqrt((bodies.x_pos - click_x) ** 2 + (bodies.y_pos - click_y) ** 2)
+                nearest = np.argmin(distances)
+
+                if distances[nearest] <= bodies.b_radii * 3:
+                    bodies.delete_body(nearest)
+                    need_force_refresh = True
+                clear_body_modes()
+
         t0 = time.perf_counter()
 
         if not paused:
