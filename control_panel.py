@@ -1,3 +1,4 @@
+import math
 import tkinter as tk
 import bodies
 
@@ -53,41 +54,48 @@ def control_panel(toggle_pause_callback, dt_change_callback, softening_change_ca
 
 def update_control_panel(fps, num_bodies, physics_time, fps_label, num_bodies_label, physics_time_label, message_label, message):
     fps_label.config(text=f"FPS: {fps:.0f}")
-    num_bodies_label.config(text=f"Number of Bodies: {num_bodies:.2f}")
+    num_bodies_label.config(text=f"Number of Bodies: {num_bodies:d}")
     physics_time_label.config(text=f"Physics Time: {physics_time:.2f}")
     message_label.config(text=f"Message: {message}")
 
 def open_add_body_popup(root, position, create_body_callback):
     popup = tk.Toplevel(root)
     popup.title("Add Body")
-    popup.geometry("250x200")
+    popup.geometry("250x250")
 
     tk.Label(popup, text="Mass:").pack()
     mass_entry = tk.Entry(popup)
     mass_entry.pack()
 
-    tk.Label(popup, text="X Velocity:").pack()
+    tk.Label(popup, text="X Velocity (blank = 0):").pack()
     xvel_entry = tk.Entry(popup)
     xvel_entry.pack()
 
-    tk.Label(popup, text="Y Velocity:").pack()
+    tk.Label(popup, text="Y Velocity (blank = 0):").pack()
     yvel_entry = tk.Entry(popup)
     yvel_entry.pack()
+
+    error_label = tk.Label(popup, text="", fg="red")
+    error_label.pack()
 
     def submit():
         try:
             m = float(mass_entry.get())
-            xv = float(xvel_entry.get())
-            yv = float(yvel_entry.get())
-            if m <= 0:
-                tk.Label(popup, text="Mass must be greater than 0", fg="red").pack()
-                return
+            xv = float(xvel_entry.get() or 0)
+            yv = float(yvel_entry.get() or 0)
         except ValueError:
-            tk.Label(popup, text="Invalid input, using defaults", fg="red").pack()
-            m, xv, yv = 100.0, 0.0, 0.0
+            error_label.config(text="Please enter numbers only")
+            return
+
+        if not (math.isfinite(m) and m > 0):
+            error_label.config(text="Mass must be greater than 0")
+            return
+        if not (math.isfinite(xv) and math.isfinite(yv)):
+            error_label.config(text="Velocity must be a finite number")
+            return
         # position is screen coords already; create_body expects sim coords
         create_body_callback(m, position[0] - bodies.screen_width / 2,
-                              bodies.screen_height / 2 - position[1], xv, yv)
+                             bodies.screen_height / 2 - position[1], xv, yv)
         popup.destroy()
 
     submit_btn = tk.Button(popup, text="Add", command=submit)
