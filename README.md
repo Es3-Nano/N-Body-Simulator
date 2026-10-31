@@ -5,11 +5,10 @@ A 2D gravitational N-body simulator built with **pygame** for rendering and **Nu
 ## Features
 
 - **Direct-summation gravity** — every body's acceleration is computed from every other body (O(n²)) using a softened Newtonian force law, JIT-compiled and parallelized with Numba for performance.
-- **Velocity Verlet integration** (kick-drift-kick form, one acceleration array) for stable position/velocity updates.
+- **Velocity Verlet integration** for stable position/velocity updates.
 - **Initial disk distribution** — bodies are seeded within a circular (disk) region using a uniform radius/angle distribution.
 - **Configurable masses** — choose a single fixed mass for all bodies, or a random mass within a range.
 - **Optional collisions** — merges colliding bodies (conserving momentum and combined mass) and removes the absorbed body.
-- **Test mode** — optional console prompt at startup that writes array info, acceleration stats, momentum and a few sample bodies to `test_log.txt` every 50 steps.
 - **Live control panel** (Tkinter) with:
   - Play/pause toggle
   - Time step (`dt`) slider
@@ -32,14 +31,13 @@ Install the Python dependencies with:
 ```bash
 pip install pygame numpy numba
 ```
-Note: pygame or pygame-ce can both work
 
 ## Project Structure
 
 | File                | Purpose                                                                 |
 |---------------------|--------------------------------------------------------------------------|
 | `main.py`           | Entry point — handles setup prompts, the pygame event/render loop, and wiring the control panel to the simulation state. |
-| `bodies.py`         | Body state storage (positions, velocities, masses, accelerations as NumPy arrays) and operations: create, delete, merge (collide), draw, and the kick/drift integration steps. |
+| `bodies.py`         | Body state storage (positions, velocities, masses, accelerations as NumPy arrays) and operations: create, delete, merge (collide), draw, and integrate position. |
 | `physics_engine.py` | Numba-accelerated gravitational force calculation and collision detection. |
 | `control_panel.py`  | Tkinter-based control panel: sliders, buttons, labels, and the "add body" popup dialog. |
 
@@ -55,11 +53,10 @@ You'll be prompted in the terminal to configure the initial setup:
 
 1. **Number of bodies** to simulate.
 2. Whether to **enable collisions** (`y`/`n`).
-3. Whether to enable **test mode** (`y`/`n`).
-4. The **radius** of the initial disk distribution (in pixels).
-5. Whether all bodies should share the **same mass** or use **random masses** within a range you specify.
+3. The **radius** of the initial disk distribution (in pixels).
+4. Whether all bodies should share the **same mass** or use **random masses** within a range you specify.
 
-After 5 invalid attempts a prompt falls back to its default value.
+At any prompt you can type `d` or `deflaut` to accept the default value.
 
 Once configured, two windows open:
 - A **pygame window** showing the live simulation.
@@ -80,9 +77,9 @@ Once configured, two windows open:
 
 - Body data (mass, position, velocity, acceleration) is stored in flat NumPy arrays for efficient vectorized updates.
 - Each simulation step:
-  1. `physics_engine.calculate_force` (called after the position update) computes pairwise gravitational accelerations (with a softening term to avoid divide-by-zero at short range) and flags any pairs within the collision distance.
-  2. Each step is: half-step velocity update, move positions, recalculate acceleration at the new positions, half-step velocity update (velocity Verlet).
-  3. If collisions are enabled, flagged pairs are merged via a mass-weighted average of position and velocity, the absorbed bodies are removed, and acceleration is recalculated.
+  1. `physics_engine.calculate_force` computes pairwise gravitational accelerations (with a softening term to avoid divide-by-zero at short range) and flags any pairs within the collision distance.
+  2. If collisions are enabled, flagged pairs are merged via a mass-weighted average of position and velocity, and the absorbed body is removed.
+  3. `bodies.update_pos` advances positions and velocities using velocity Verlet integration.
 - The "Fast Forward Steps" control lets you run multiple physics steps per rendered frame to speed up long-timescale simulations without sacrificing render smoothness.
 
 ## Performance

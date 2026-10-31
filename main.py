@@ -1,4 +1,5 @@
 import time
+import csv
 import tkinter as tk
 import numpy as np
 import pygame
@@ -20,10 +21,14 @@ add_body_mode = delete_body_mode = False
 need_force_refresh = True  
 
 test_mode = False
-log_file = None
-LOG_EVERY = 1      # write a log entry every this many physics steps
-LOG_BODIES = 5      # how many bodies to list in each entry
+LOG_EVERY = 10
 ARRAY_NAMES = ["mass", "x_pos", "y_pos", "x_vel", "y_vel", "acc_x", "acc_y"]
+LOG_COLUMNS = ["step", "bodies", "merges", "dt", "softening", "fps",
+               "physics_time", "px", "py", "has_nan", "lengths_ok"]
+log_rows = []
+log_snapshots = {}
+latest_fps = 0.0
+latest_physics_time = 0.0
 step_count = total_merges = 0
 
 def start():
@@ -37,9 +42,6 @@ def start():
     test_mode = (test_confirm == "y")
 
     intial_disk(body_count)
-
-    if test_mode:
-        start_test_log(body_count)
 
 def check_if_int(prompt: str, deflaut: int, minimum: int = 0):
     for x in range(response_trys):
@@ -178,47 +180,28 @@ def physics_step():
     if test_mode and step_count % LOG_EVERY == 0:
         log_step()
 
-def start_test_log(body_count):
-    global log_file
-    log_file = open("test_log.txt", "w")
-    log_file.write(f"Test log, started {time.strftime('%Y-%m-%d %H:%M:%S')}\n")
-    log_file.write(f"bodies asked for: {body_count} | collisions: {allowCollision} | dt: {dt} | softening: {softening}\n")
-    log_file.write(f"logging every {LOG_EVERY} steps, first {LOG_BODIES} bodies listed\n\n")
-    log_file.write("Array info at start:\n")
-    for name in ARRAY_NAMES:
-        arr = getattr(bodies, name)
-        log_file.write(f"  {name}: dtype={arr.dtype} shape={arr.shape}\n")
-    log_file.flush()
-
 def log_step():
     n = bodies.number_of_bodies
-    f = log_file
-    f.write(f"\n--- step {step_count} | bodies {n} | merges so far {total_merges} | dt {dt} | softening {softening} ---\n")
 
-    lengths = {len(getattr(bodies, name)) for name in ARRAY_NAMES}
-    if lengths != {n}:
-        f.write(f"WARNING: array lengths {lengths} don't match body count {n}\n")
-    if n == 0:
-        f.flush()
-        return
+    px = np.sum(bodies.mass * bodies.x_vel)   # total momentum should stay ~constant
+    py = np.sum(bodies.mass * bodies.y_vel)
+    has_nan = bool(np.isnan(bodies.acc_x).any() or np.isnan(bodies.acc_y).any())
+    lengths_ok = all(len(getattr(bodies, name)) == n for name in ARRAY_NAMES)
+    log_rows.append([step_count, n, total_merges, dt, softening,
+                     latest_fps, latest_physics_time, px, py, has_nan, lengths_ok])
 
-    for name in ("acc_x", "acc_y"):
-        arr = getattr(bodies, name)
-        f.write(f"{name}: min={arr.min():.4e} max={arr.max():.4e} mean={arr.mean():.4e}\n")
-    if np.isnan(bodies.acc_x).any() or np.isnan(bodies.acc_y).any():
-        f.write("WARNING: NaN in acceleration\n")
+    for name in ARRAY_NAMES:
+        log_snapshots[f"{name}_{step_count}"] = getattr(bodies, name).copy()
 
-    # total momentum should stay roughly constant (sum of mass * velocity)
-    f.write(f"momentum: px={np.sum(bodies.mass * bodies.x_vel):.6e} py={np.sum(bodies.mass * bodies.y_vel):.6e}\n")
-
-    f.write("i, mass, x, y, vx, vy, ax, ay\n")
-    for i in range(min(n, LOG_BODIES)):
-        f.write(f"{i}, {bodies.mass[i]:.2f}, {bodies.x_pos[i]:.3f}, {bodies.y_pos[i]:.3f}, "
-                f"{bodies.x_vel[i]:.4e}, {bodies.y_vel[i]:.4e}, {bodies.acc_x[i]:.4e}, {bodies.acc_y[i]:.4e}\n")
-    f.flush()
+def save_test_log():
+    with open("test_log.csv", "w", newline="") as f:
+        writer = csv.writer(f)
+        writer.writerow(LOG_COLUMNS)
+        writer.writerows(log_rows)
+    np.savez("test_log.npz", **log_snapshots)
 
 def run_simulator():
-    global need_force_refresh
+    global need_force_refresh, latest_fps, latest_physics_time
     pygame.init()
     screen = pygame.display.set_mode((bodies.screen_width, bodies.screen_height))
     root, fps_label, num_bodies_label, physics_time_label, _, message_label = control_panel.control_panel(toggle_pause, set_dt, set_softening, set_fast_forward_steps, enter_add_body_mode, enter_delete_body_mode)
@@ -263,6 +246,7 @@ def run_simulator():
             for _ in range(fast_foward_steps):
                 physics_step()
         physics_time = time.perf_counter() - t0
+        latest_physics_time = physics_time
 
         bodies.draw_all_bodies(screen)
         pygame.display.update()
@@ -271,6 +255,7 @@ def run_simulator():
             root.update()
             clock.tick(60)
             fps = clock.get_fps()
+            latest_fps = fps
             control_panel.update_control_panel(fps, bodies.number_of_bodies, physics_time, fps_label, num_bodies_label, physics_time_label, message_label, message)
         except tk.TclError:
             running = False
@@ -280,8 +265,8 @@ def run_simulator():
         root.destroy()
     except tk.TclError:
         pass
-    if log_file:
-        log_file.close()
+    if test_mode:
+        save_test_log()
 
 if __name__ == "__main__":
     start()
